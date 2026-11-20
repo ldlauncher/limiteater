@@ -10,6 +10,8 @@ settings:
   ENABLE_BITCODE: NO
   CODE_SIGNING_ALLOWED: NO
   CODE_SIGNING_REQUIRED: NO
+  CODE_SIGN_IDENTITY: ""
+  CODE_SIGN_STYLE: Manual
 
 targets:
   Limiteater:
@@ -27,3 +29,13 @@ targets:
       PRODUCT_NAME: Limiteater
       INFOPLIST_FILE: Limiteater/Info.plist
       GENERATE_INFOPLIST_FILE: NO
+      CODE_SIGNING_ALLOWED: NO
+      CODE_SIGNING_REQUIRED: NO
+      CODE_SIGN_IDENTITY: ""
+      CODE_SIGN_STYLE: Manual
+
+schemes:
+  Limiteater:
+    build:
+      targets:
+        Limiteater: all

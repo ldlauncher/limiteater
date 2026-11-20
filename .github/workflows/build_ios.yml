@@ -24,22 +24,25 @@ jobs:
           cd ios
           xcodegen generate
           ls -la
+          ls -la Limiteater.xcodeproj
 
       - name: Build Limiteater App with xcodebuild
         run: |
           cd ios
+          set -o pipefail
           xcodebuild clean build \
             -project Limiteater.xcodeproj \
-            -scheme Limiteater \
+            -target Limiteater \
             -configuration Release \
             -sdk iphoneos \
             -destination "generic/platform=iOS" \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_STYLE=Manual \
             AD_HOC_CODE_SIGNING_ALLOWED=YES \
             BUILD_DIR="../build_output" \
-            SYMROOT="../build_output"
+            SYMROOT="../build_output" 2>&1 | tee ../xcodebuild.log || (echo "=== COMPILATION ERROR DETAILS ===" && tail -n 100 ../xcodebuild.log && exit 1)
 
       - name: Package real .IPA (TrollStore / Sideloadly compatible)
         run: |
