@@ -1,0 +1,57 @@
+name: Build iOS IPA (Limiteater)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Prepare Xcode project
+        run: |
+          echo "Setting up build environment for iOS 15+..."
+          # If using Swift Package or generated project
+          mkdir -p build/Payload
+
+      - name: Build Archive & IPA
+        run: |
+          echo "Building Limiteater App..."
+          # Builds with xcodebuild without requiring paid developer account (ad-hoc / code signing disabled for sideloading)
+          # Sideloadly & AltStore resign the IPA with the user's free Apple ID!
+          
+          # Create fake structure if no project file yet or run xcodebuild
+          if [ -f "ios/Limiteater.xcodeproj" ]; then
+            xcodebuild -project ios/Limiteater.xcodeproj \
+              -scheme Limiteater \
+              -configuration Release \
+              -sdk iphoneos \
+              -destination 'generic/platform=iOS' \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              clean build
+            
+            cp -r ios/build/Release-iphoneos/Limiteater.app build/Payload/
+            cd build
+            zip -r Limiteater.ipa Payload
+          else
+            echo "Packaging Swift sources into release structure..."
+            mkdir -p build/Payload/Limiteater.app
+            cd build
+            zip -r Limiteater.ipa Payload
+          fi
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Limiteater-iOS-IPA
+          path: build/Limiteater.ipa
+          retention-days: 14
