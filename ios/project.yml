@@ -3,11 +3,10 @@ options:
   bundleIdPrefix: com.limiteater
   deploymentTarget:
     iOS: "15.0"
-  xcodeVersion: "15.0"
 
 settings:
   SWIFT_VERSION: "5.0"
-  TARGETED_DEVICE_FAMILY: "1" # iPhone
+  TARGETED_DEVICE_FAMILY: "1"
   ENABLE_BITCODE: NO
   CODE_SIGNING_ALLOWED: NO
   CODE_SIGNING_REQUIRED: NO
