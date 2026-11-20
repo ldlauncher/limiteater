@@ -1,4 +1,4 @@
-name: Build iOS IPA (Limiteater)
+name: Build iOS IPA for TrollStore / Sideloadly
 
 on:
   push:
@@ -7,51 +7,71 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-14
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select latest Xcode
-        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+      - name: Select Xcode 15
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer || sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-      - name: Prepare Xcode project
-        run: |
-          echo "Setting up build environment for iOS 15+..."
-          # If using Swift Package or generated project
-          mkdir -p build/Payload
+      - name: Install XcodeGen
+        run: brew install xcodegen
 
-      - name: Build Archive & IPA
+      - name: Generate Xcode Project
         run: |
-          echo "Building Limiteater App..."
-          # Builds with xcodebuild without requiring paid developer account (ad-hoc / code signing disabled for sideloading)
-          # Sideloadly & AltStore resign the IPA with the user's free Apple ID!
+          cd ios
+          xcodegen generate
+          ls -la
+
+      - name: Build Limiteater App with xcodebuild
+        run: |
+          cd ios
+          xcodebuild build \
+            -project Limiteater.xcodeproj \
+            -scheme Limiteater \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            BUILD_DIR="../build_output" \
+            SYMROOT="../build_output"
+
+      - name: Package real .IPA (TrollStore / Sideloadly compatible)
+        run: |
+          echo "Packaging compiled app into .ipa..."
+          mkdir -p ipa_package/Payload
           
-          # Create fake structure if no project file yet or run xcodebuild
-          if [ -f "ios/Limiteater.xcodeproj" ]; then
-            xcodebuild -project ios/Limiteater.xcodeproj \
-              -scheme Limiteater \
-              -configuration Release \
-              -sdk iphoneos \
-              -destination 'generic/platform=iOS' \
-              CODE_SIGNING_ALLOWED=NO \
-              CODE_SIGNING_REQUIRED=NO \
-              clean build
-            
-            cp -r ios/build/Release-iphoneos/Limiteater.app build/Payload/
-            cd build
-            zip -r Limiteater.ipa Payload
-          else
-            echo "Packaging Swift sources into release structure..."
-            mkdir -p build/Payload/Limiteater.app
-            cd build
-            zip -r Limiteater.ipa Payload
+          # Find the compiled .app bundle
+          APP_PATH=$(find build_output -name "Limiteater.app" -type d | head -n 1)
+          echo "Found compiled app at: $APP_PATH"
+          
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: Limiteater.app was not built!"
+            exit 1
           fi
+          
+          cp -r "$APP_PATH" ipa_package/Payload/
+          
+          # Verify Info.plist exists
+          if [ ! -f "ipa_package/Payload/Limiteater.app/Info.plist" ]; then
+            echo "Copying fallback Info.plist..."
+            cp ios/Limiteater/Info.plist ipa_package/Payload/Limiteater.app/
+          fi
+          
+          cd ipa_package
+          zip -r -9 ../Limiteater.ipa Payload
+          cd ..
+          
+          echo "=== RESULTING IPA DETAILS ==="
+          ls -lh Limiteater.ipa
 
-      - name: Upload IPA Artifact
+      - name: Upload Real IPA
         uses: actions/upload-artifact@v4
         with:
-          name: Limiteater-iOS-IPA
-          path: build/Limiteater.ipa
+          name: Limiteater-TrollStore-IPA
+          path: Limiteater.ipa
           retention-days: 14

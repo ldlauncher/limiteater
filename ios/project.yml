@@ -1,0 +1,28 @@
+name: Limiteater
+options:
+  bundleIdPrefix: com.limiteater
+  deploymentTarget:
+    iOS: "15.0"
+  xcodeVersion: "15.0"
+
+settings:
+  SWIFT_VERSION: "5.0"
+  TARGETED_DEVICE_FAMILY: "1" # iPhone
+  ENABLE_BITCODE: NO
+  CODE_SIGNING_ALLOWED: NO
+  CODE_SIGNING_REQUIRED: NO
+
+targets:
+  Limiteater:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: Limiteater
+    info:
+      path: Limiteater/Info.plist
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.limiteater.app
+      PRODUCT_NAME: Limiteater
+      INFOPLIST_FILE: Limiteater/Info.plist
+      GENERATE_INFOPLIST_FILE: NO
