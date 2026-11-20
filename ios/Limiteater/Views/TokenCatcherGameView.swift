@@ -5,6 +5,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct FallingGameItem: Identifiable {
     let id = UUID()

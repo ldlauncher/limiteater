@@ -5,6 +5,7 @@
 //
 
 import SwiftUI
+import Combine
 
 public struct RootGameView: View {
     @State private var currentRoom: RoomType = .kitchen

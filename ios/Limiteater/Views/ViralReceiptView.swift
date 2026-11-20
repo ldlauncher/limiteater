@@ -5,6 +5,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 public struct ViralReceiptView: View {
     @Environment(\.presentationMode) var presentationMode

@@ -28,7 +28,7 @@ jobs:
       - name: Build Limiteater App with xcodebuild
         run: |
           cd ios
-          xcodebuild build \
+          xcodebuild clean build \
             -project Limiteater.xcodeproj \
             -scheme Limiteater \
             -configuration Release \
@@ -37,6 +37,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
             BUILD_DIR="../build_output" \
             SYMROOT="../build_output"
 
