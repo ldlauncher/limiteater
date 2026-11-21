@@ -1,137 +1,228 @@
 //
 //  BeetleCanvasView.swift
 //  Limiteater
-//  SwiftUI Canvas procedural animated vector rendering of the Limit-Eater Beetle
+//  Exact representation of the viral 3D Claude mascot (orange blocky body, 6 pillar legs, < > eyes)
 //
 
 import SwiftUI
 
+public enum EyeExpression {
+    case standard       // < >
+    case happy          // ^ ^
+    case sleeping       // - -
+    case dizzy          // @ @
+    case money          // $ $
+    case hangry         // > <
+    case sunglasses    // 🕶️
+    case matrix         // 0 1
+}
+
 public struct BeetleCanvasView: View {
     public var beetle: Beetle
+    public var expression: EyeExpression = .standard
+    public var foamAmount: Double = 0.0     // 0.0 to 1.0 (soap foam in bathroom)
     public var isChewing: Bool = false
     public var isPoked: Bool = false
+    public var legWalkOffset: CGFloat = 0.0
     
-    @State private var breathScale: CGFloat = 1.0
-    @State private var legWiggle: CGFloat = 0.0
+    @State private var idleWobble: CGFloat = 0.0
     
-    public init(beetle: Beetle, isChewing: Bool = false, isPoked: Bool = false) {
+    public init(
+        beetle: Beetle,
+        expression: EyeExpression = .standard,
+        foamAmount: Double = 0.0,
+        isChewing: Bool = false,
+        isPoked: Bool = false,
+        legWalkOffset: CGFloat = 0.0
+    ) {
         self.beetle = beetle
+        self.expression = expression
+        self.foamAmount = foamAmount
         self.isChewing = isChewing
         self.isPoked = isPoked
+        self.legWalkOffset = legWalkOffset
+    }
+    
+    public var currentExpression: EyeExpression {
+        if beetle.isSleeping { return .sleeping }
+        if beetle.hunger < 25 { return .hangry }
+        if expression != .standard { return expression }
+        return .standard
     }
     
     public var body: some View {
-        Canvas { context, size in
-            let center = CGPoint(x: size.width / 2, y: size.height / 2 + 10)
+        ZStack {
+            // Shadow under feet
+            Ellipse()
+                .fill(Color.black.opacity(0.35))
+                .frame(width: 170, height: 26)
+                .offset(y: 85)
             
-            // 1. Glow / Aura
-            let auraRect = CGRect(x: center.x - 70, y: center.y - 60, width: 140, height: 120)
-            let auraColor = beetle.isSleeping ? Color.cyan.opacity(0.2) :
-                            (beetle.hunger < 25 ? Color.red.opacity(0.3) : Color.orange.opacity(0.25))
-            context.fill(Path(ellipseIn: auraRect), with: .color(auraColor))
-            
-            // 2. Legs (6 legs)
-            var legPath = Path()
-            // Left
-            legPath.move(to: CGPoint(x: center.x - 45, y: center.y - 20))
-            legPath.addQuadCurve(to: CGPoint(x: center.x - 85, y: center.y - 10 + legWiggle),
-                                 control: CGPoint(x: center.x - 75, y: center.y - 35))
-            legPath.move(to: CGPoint(x: center.x - 50, y: center.y + 10))
-            legPath.addQuadCurve(to: CGPoint(x: center.x - 90, y: center.y + 25 - legWiggle),
-                                 control: CGPoint(x: center.x - 80, y: center.y + 10))
-            legPath.move(to: CGPoint(x: center.x - 45, y: center.y + 40))
-            legPath.addQuadCurve(to: CGPoint(x: center.x - 85, y: center.y + 65 + legWiggle),
-                                 control: CGPoint(x: center.x - 75, y: center.y + 55))
-            // Right
-            legPath.move(to: CGPoint(x: center.x + 45, y: center.y - 20))
-            legPath.addQuadCurve(to: CGPoint(x: center.x + 85, y: center.y - 10 - legWiggle),
-                                 control: CGPoint(x: center.x + 75, y: center.y - 35))
-            legPath.move(to: CGPoint(x: center.x + 50, y: center.y + 10))
-            legPath.addQuadCurve(to: CGPoint(x: center.x + 90, y: center.y + 25 + legWiggle),
-                                 control: CGPoint(x: center.x + 80, y: center.y + 10))
-            legPath.move(to: CGPoint(x: center.x + 45, y: center.y + 40))
-            legPath.addQuadCurve(to: CGPoint(x: center.x + 85, y: center.y + 65 - legWiggle),
-                                 control: CGPoint(x: center.x + 75, y: center.y + 55))
-            
-            context.stroke(legPath, with: .color(Color(red: 0.75, green: 0.28, blue: 0.1)), lineWidth: 7)
-            
-            // 3. Antennae with Star-like feelers
-            var antPath = Path()
-            antPath.move(to: CGPoint(x: center.x - 25, y: center.y - 50))
-            antPath.addQuadCurve(to: CGPoint(x: center.x - 60, y: center.y - 90),
-                                control: CGPoint(x: center.x - 45, y: center.y - 75))
-            antPath.move(to: CGPoint(x: center.x + 25, y: center.y - 50))
-            antPath.addQuadCurve(to: CGPoint(x: center.x + 60, y: center.y - 90),
-                                control: CGPoint(x: center.x + 45, y: center.y - 75))
-            context.stroke(antPath, with: .color(Color(red: 0.85, green: 0.35, blue: 0.1)), lineWidth: 5)
-            
-            // Antenna Tips
-            context.fill(Path(ellipseIn: CGRect(x: center.x - 67, y: center.y - 97, width: 14, height: 14)),
-                         with: .color(.yellow))
-            context.fill(Path(ellipseIn: CGRect(x: center.x + 53, y: center.y - 97, width: 14, height: 14)),
-                         with: .color(.yellow))
-            
-            // 4. Main Body Shell (Chubby Orange Crab-Beetle)
-            let bodyRect = CGRect(x: center.x - 60, y: center.y - 50, width: 120, height: 105)
-            context.fill(Path(ellipseIn: bodyRect), with: .color(Color(red: 0.93, green: 0.40, blue: 0.18)))
-            
-            // Carapace highlight
-            let wingShadow = CGRect(x: center.x - 2, y: center.y - 50, width: 55, height: 100)
-            context.fill(Path(ellipseIn: wingShadow), with: .color(Color(red: 0.80, green: 0.28, blue: 0.12).opacity(0.6)))
-            
-            // 5. Eyes
-            if beetle.isSleeping {
-                // Closed eyes (curves)
-                var eyeClosedPath = Path()
-                eyeClosedPath.move(to: CGPoint(x: center.x - 35, y: center.y - 15))
-                eyeClosedPath.addQuadCurve(to: CGPoint(x: center.x - 10, y: center.y - 15),
-                                          control: CGPoint(x: center.x - 22, y: center.y - 7))
-                eyeClosedPath.move(to: CGPoint(x: center.x + 10, y: center.y - 15))
-                eyeClosedPath.addQuadCurve(to: CGPoint(x: center.x + 35, y: center.y - 15),
-                                          control: CGPoint(x: center.x + 22, y: center.y - 7))
-                context.stroke(eyeClosedPath, with: .color(.black), lineWidth: 4)
-            } else {
-                // Open big eyes
-                let leftEye = CGRect(x: center.x - 35, y: center.y - 25, width: 24, height: 26)
-                let rightEye = CGRect(x: center.x + 11, y: center.y - 25, width: 24, height: 26)
-                context.fill(Path(ellipseIn: leftEye), with: .color(.white))
-                context.fill(Path(ellipseIn: rightEye), with: .color(.white))
+            VStack(spacing: 0) {
+                // Top Main Block Body (Orange Rounded Cuboid)
+                ZStack {
+                    // Left and Right ear-blocks (Side handles)
+                    HStack {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color(red: 0.90, green: 0.42, blue: 0.12))
+                            .frame(width: 20, height: 42)
+                            .offset(x: -8)
+                        Spacer()
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color(red: 0.85, green: 0.38, blue: 0.10))
+                            .frame(width: 20, height: 42)
+                            .offset(x: 8)
+                    }
+                    .frame(width: 190)
+                    
+                    // Main Cuboid Front Face
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color(red: 0.98, green: 0.52, blue: 0.18),
+                                    Color(red: 0.91, green: 0.43, blue: 0.12)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 170, height: 110)
+                        .overlay(
+                            // 3D Bevel Highlight
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(Color.white.opacity(0.25), lineWidth: 3)
+                        )
+                        .shadow(color: Color.black.opacity(0.3), radius: 8, y: 5)
+                    
+                    // Eyes (< > or dynamic states)
+                    renderEyes()
+                    
+                    // Soap Foam Overlay (if bathing)
+                    if foamAmount > 0.05 {
+                        soapFoamLayer()
+                    }
+                }
+                .offset(y: isChewing ? -4 : 0)
                 
-                // Pupils
-                let pupilY = isPoked ? center.y - 18 : center.y - 14
-                context.fill(Path(ellipseIn: CGRect(x: center.x - 26, y: pupilY, width: 11, height: 11)), with: .color(.black))
-                context.fill(Path(ellipseIn: CGRect(x: center.x + 15, y: pupilY, width: 11, height: 11)), with: .color(.black))
-                // White sparkle
-                context.fill(Path(ellipseIn: CGRect(x: center.x - 24, y: pupilY - 2, width: 4, height: 4)), with: .color(.white))
-                context.fill(Path(ellipseIn: CGRect(x: center.x + 17, y: pupilY - 2, width: 4, height: 4)), with: .color(.white))
+                // Bottom 6 Pillar Legs (3 on left, 3 on right)
+                HStack(spacing: 6) {
+                    // Left 3 legs
+                    ForEach(0..<3) { i in
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(red: 0.86, green: 0.38, blue: 0.10))
+                            .frame(width: 18, height: 38)
+                            .offset(y: legWalkOffset * (i % 2 == 0 ? 1 : -1))
+                    }
+                    
+                    Spacer().frame(width: 20) // Gap between leg clusters
+                    
+                    // Right 3 legs
+                    ForEach(0..<3) { i in
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(red: 0.82, green: 0.35, blue: 0.09))
+                            .frame(width: 18, height: 38)
+                            .offset(y: -legWalkOffset * (i % 2 == 0 ? 1 : -1))
+                    }
+                }
+                .frame(width: 160)
+                .offset(y: -2)
             }
-            
-            // 6. Mouth / Mandibles
-            var mouthPath = Path()
-            if isChewing {
-                let chewRect = CGRect(x: center.x - 12, y: center.y + 12, width: 24, height: 16)
-                context.fill(Path(ellipseIn: chewRect), with: .color(Color(red: 0.3, green: 0.1, blue: 0.1)))
-            } else if beetle.hunger < 25 {
-                // Sad / hangry
-                mouthPath.move(to: CGPoint(x: center.x - 18, y: center.y + 22))
-                mouthPath.addQuadCurve(to: CGPoint(x: center.x + 18, y: center.y + 22),
-                                       control: CGPoint(x: center.x, y: center.y + 12))
-                context.stroke(mouthPath, with: .color(.black), lineWidth: 4)
-            } else {
-                // Happy smile
-                mouthPath.move(to: CGPoint(x: center.x - 18, y: center.y + 15))
-                mouthPath.addQuadCurve(to: CGPoint(x: center.x + 18, y: center.y + 15),
-                                       control: CGPoint(x: center.x, y: center.y + 27))
-                context.stroke(mouthPath, with: .color(.black), lineWidth: 4)
-            }
+            .scaleEffect(isPoked ? 0.92 : (1.0 + idleWobble))
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPoked)
         }
-        .frame(width: 220, height: 220)
-        .scaleEffect(breathScale)
+        .frame(width: 220, height: 200)
         .onAppear {
-            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
-                breathScale = 1.04
-                legWiggle = 6.0
+            withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
+                idleWobble = 0.02
             }
         }
+    }
+    
+    // MARK: - Eye Expression Renderer
+    @ViewBuilder
+    private func renderEyes() -> some View {
+        HStack(spacing: 48) {
+            switch currentExpression {
+            case .standard:
+                // Iconic < > eyes
+                Text("<")
+                    .font(.system(size: 34, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color(red: 0.12, green: 0.12, blue: 0.14))
+                Text(">")
+                    .font(.system(size: 34, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color(red: 0.12, green: 0.12, blue: 0.14))
+                
+            case .happy:
+                Text("^")
+                    .font(.system(size: 36, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color(red: 0.12, green: 0.12, blue: 0.14))
+                Text("^")
+                    .font(.system(size: 36, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color(red: 0.12, green: 0.12, blue: 0.14))
+                
+            case .sleeping:
+                Text("-")
+                    .font(.system(size: 38, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color(red: 0.15, green: 0.15, blue: 0.2))
+                Text("-")
+                    .font(.system(size: 38, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color(red: 0.15, green: 0.15, blue: 0.2))
+                
+            case .hangry:
+                Text(">")
+                    .font(.system(size: 34, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color(red: 0.8, green: 0.1, blue: 0.1))
+                Text("<")
+                    .font(.system(size: 34, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color(red: 0.8, green: 0.1, blue: 0.1))
+                
+            case .dizzy:
+                Text("@")
+                    .font(.system(size: 30, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color.purple)
+                Text("@")
+                    .font(.system(size: 30, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color.purple)
+                
+            case .money:
+                Text("$")
+                    .font(.system(size: 32, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color.yellow)
+                Text("$")
+                    .font(.system(size: 32, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color.yellow)
+                
+            case .sunglasses:
+                Text("🕶️")
+                    .font(.system(size: 36))
+                
+            case .matrix:
+                Text("0")
+                    .font(.system(size: 30, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color.green)
+                Text("1")
+                    .font(.system(size: 30, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Color.green)
+            }
+        }
+        .offset(y: -5)
+    }
+    
+    // MARK: - Soap Foam Bubbles
+    private func soapFoamLayer() -> some View {
+        ZStack {
+            ForEach(0..<Int(foamAmount * 14), id: \.self) { i in
+                Circle()
+                    .fill(Color.white.opacity(0.85))
+                    .frame(width: CGFloat(16 + (i * 3) % 18), height: CGFloat(16 + (i * 3) % 18))
+                    .overlay(Circle().stroke(Color.cyan.opacity(0.4), lineWidth: 1.5))
+                    .offset(
+                        x: CGFloat(((i * 37) % 140) - 70),
+                        y: CGFloat(((i * 29) % 80) - 40)
+                    )
+            }
+        }
+        .frame(width: 170, height: 110)
     }
 }
