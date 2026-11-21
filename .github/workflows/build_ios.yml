@@ -25,43 +25,43 @@ jobs:
           xcodegen generate
           ls -la Limiteater.xcodeproj
 
-      - name: Archive Limiteater App with xcodebuild
+      - name: Build Limiteater App with Ad-Hoc Sign
         run: |
           cd ios
-          xcodebuild archive \
+          xcodebuild build \
             -project Limiteater.xcodeproj \
             -scheme Limiteater \
             -sdk iphoneos \
             -configuration Release \
             -destination "generic/platform=iOS" \
-            -archivePath "./Limiteater.xcarchive" \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
+            -derivedDataPath ./DerivedData \
+            CODE_SIGN_IDENTITY="-" \
             CODE_SIGN_STYLE=Manual \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES
+            AD_HOC_CODE_SIGNING_ALLOWED=YES 2>&1 | tee ../xcodebuild.log || (echo "=== BUILD LOG HEAD & TAIL ===" && head -n 50 ../xcodebuild.log && echo "..." && tail -n 100 ../xcodebuild.log && exit 1)
 
-      - name: Package Real .IPA from Archive
+      - name: Package Real .IPA
         run: |
-          echo "=== VERIFYING ARCHIVE CONTENTS ==="
-          ls -la ios/Limiteater.xcarchive
-          ls -la ios/Limiteater.xcarchive/Products/Applications/
+          echo "=== SEARCHING FOR COMPILED Limiteater.app ==="
+          APP_PATH=$(find ios/DerivedData -name "Limiteater.app" -type d | head -n 1)
+          echo "Found compiled app at: $APP_PATH"
           
-          APP_PATH="ios/Limiteater.xcarchive/Products/Applications/Limiteater.app"
-          
-          if [ ! -d "$APP_PATH" ]; then
-            echo "Searching for Limiteater.app in archive..."
-            APP_PATH=$(find ios/Limiteater.xcarchive -name "Limiteater.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: Limiteater.app was not found!"
+            find ios/DerivedData -maxdepth 5
+            exit 1
           fi
           
-          echo "Using App Path: $APP_PATH"
-          ls -lh "$APP_PATH"
+          echo "=== APP BUNDLE CONTENTS ==="
+          ls -la "$APP_PATH"
+          
+          echo "=== EXECUTABLE BINARY CHECK ==="
+          ls -lh "$APP_PATH/Limiteater" || true
           
           echo "=== PACKAGING INTO IPA ==="
           mkdir -p ipa_staging/Payload
           cp -r "$APP_PATH" ipa_staging/Payload/
           
-          # Verify Info.plist exists
+          # Ensure Info.plist exists
           if [ ! -f "ipa_staging/Payload/Limiteater.app/Info.plist" ]; then
             echo "Copying fallback Info.plist..."
             cp ios/Limiteater/Info.plist ipa_staging/Payload/Limiteater.app/
@@ -71,7 +71,7 @@ jobs:
           zip -r -9 ../Limiteater.ipa Payload
           cd ..
           
-          echo "=== RESULTING IPA DETAILS ==="
+          echo "=== FINAL IPA FILE DETAILS ==="
           ls -lh Limiteater.ipa
 
       - name: Upload Real IPA
@@ -81,3 +81,12 @@ jobs:
           name: Limiteater-TrollStore-IPA
           path: Limiteater.ipa
           retention-days: 14
+
+      - name: Upload Build Log (Always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: xcodebuild.log
+          if-no-files-found: ignore
+          retention-days: 7
