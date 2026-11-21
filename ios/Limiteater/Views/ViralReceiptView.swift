@@ -26,8 +26,7 @@ public struct ViralReceiptView: View {
                 .padding()
                 
                 Text("🧾 ШТРАФНОЙ СЧЁТ")
-                    .font(.title2)
-                    .bold()
+                    .font(.title2.weight(.bold))
                     .foregroundColor(.white)
                 
                 // Invoice Card

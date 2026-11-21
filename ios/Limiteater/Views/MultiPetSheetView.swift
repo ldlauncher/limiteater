@@ -41,8 +41,7 @@ public struct MultiPetSheetView: View {
                                 Spacer()
                                 if currentBeetle.name == pet.name {
                                     Text("Активен")
-                                        .font(.caption)
-                                        .bold()
+                                        .font(.caption.weight(.bold))
                                         .foregroundColor(.green)
                                 } else {
                                     Button("Выбрать") {

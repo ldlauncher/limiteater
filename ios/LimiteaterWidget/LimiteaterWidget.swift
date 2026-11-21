@@ -61,14 +61,12 @@ struct LimiteaterWidgetEntryView : View {
                     .font(.title2)
                 Spacer()
                 Text("Lvl \(entry.beetle.level)")
-                    .font(.caption2)
-                    .bold()
+                    .font(.caption2.weight(.bold))
                     .foregroundColor(.orange)
             }
             
             Text(entry.beetle.name)
-                .font(.headline)
-                .bold()
+                .font(.headline.weight(.bold))
                 .foregroundColor(.white)
             
             Text(entry.beetle.isSleeping ? "💤 Спит..." : (entry.beetle.hunger < 30 ? "🔥 Голоден!" : "🚀 Вайбкодит"))
@@ -104,16 +102,14 @@ struct LimiteaterWidgetEntryView : View {
                 Text("🪲")
                     .font(.system(size: 40))
                 Text(entry.beetle.name)
-                    .font(.headline)
-                    .bold()
+                    .font(.headline.weight(.bold))
                     .foregroundColor(.white)
             }
             .frame(width: 90)
             
             VStack(alignment: .leading, spacing: 6) {
                 Text(entry.beetle.moodDescription)
-                    .font(.caption)
-                    .bold()
+                    .font(.caption.weight(.bold))
                     .foregroundColor(.orange)
                     .lineLimit(2)
                 

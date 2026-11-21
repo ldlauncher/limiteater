@@ -90,8 +90,7 @@ public struct TokenCatcherGameView: View {
                 Color.black.opacity(0.85).ignoresSafeArea()
                 VStack(spacing: 16) {
                     Text("ИГРА ОКОНЧЕНА!")
-                        .font(.largeTitle)
-                        .bold()
+                        .font(.largeTitle.weight(.bold))
                         .foregroundColor(.red)
                     Text("Ты наловил: +\(score) токенов! 🪙")
                         .font(.title2)

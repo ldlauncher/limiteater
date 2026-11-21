@@ -84,8 +84,7 @@ public struct RootGameView: View {
                 HStack(spacing: 6) {
                     Text("🪲")
                     Text(beetle.name)
-                        .font(.headline)
-                        .bold()
+                        .font(.headline.weight(.bold))
                     Text("(Lvl \(beetle.level))")
                         .font(.caption)
                         .opacity(0.7)
@@ -103,8 +102,7 @@ public struct RootGameView: View {
             HStack(spacing: 6) {
                 Text("🪙")
                 Text("\(tokens)")
-                    .font(.headline)
-                    .bold()
+                    .font(.headline.weight(.bold))
                     .foregroundColor(.yellow)
             }
             .padding(.horizontal, 14)
@@ -189,8 +187,7 @@ public struct RootGameView: View {
         case .toilet:
             Button(action: flushCache) {
                 Label("Смыть кэш (rm -rf node_modules)", systemImage: "trash.fill")
-                    .font(.subheadline)
-                    .bold()
+                    .font(.subheadline.weight(.bold))
                     .padding()
                     .background(Color.purple)
                     .foregroundColor(.white)
@@ -200,8 +197,7 @@ public struct RootGameView: View {
         case .bath:
             Button(action: washLinter) {
                 Label("Запустить линтер и пену", systemImage: "sparkles")
-                    .font(.subheadline)
-                    .bold()
+                    .font(.subheadline.weight(.bold))
                     .padding()
                     .background(Color.green)
                     .foregroundColor(.black)
@@ -212,8 +208,7 @@ public struct RootGameView: View {
             Button(action: toggleSleep) {
                 Label(beetle.isSleeping ? "☀️ Разбудить (Доброе утро!)" : "🌙 Уложить спать (Выкл. сервер)",
                       systemImage: beetle.isSleeping ? "sun.max.fill" : "moon.fill")
-                    .font(.subheadline)
-                    .bold()
+                    .font(.subheadline.weight(.bold))
                     .padding()
                     .background(Color.blue)
                     .foregroundColor(.white)
@@ -224,8 +219,7 @@ public struct RootGameView: View {
             HStack(spacing: 12) {
                 Button(action: { showMinigame = true }) {
                     Label("Ловец токенов", systemImage: "gamecontroller.fill")
-                        .font(.caption)
-                        .bold()
+                        .font(.caption.weight(.bold))
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .background(Color.green)
@@ -235,8 +229,7 @@ public struct RootGameView: View {
                 
                 Button(action: { showViralSheet = true }) {
                     Label("Чек от ИИ", systemImage: "doc.text.fill")
-                        .font(.caption)
-                        .bold()
+                        .font(.caption.weight(.bold))
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .background(Color.orange)
