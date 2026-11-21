@@ -37,27 +37,25 @@ jobs:
             -derivedDataPath ./DerivedData \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGN_STYLE=Manual \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES 2>&1 | tee ../xcodebuild.log || (echo "=== XCODEBUILD ERROR LOG ===" && tail -n 120 ../xcodebuild.log && exit 1)
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
 
       - name: Inspect and Package Real .IPA
         run: |
-          echo "=== ALL FILES IN PRODUCTS FOLDER ==="
-          find ios/DerivedData/Build/Products -type f
+          echo "### Products in DerivedData" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          find ios/DerivedData/Build/Products -type f >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
           
-          echo "=== SEARCHING FOR COMPILED Limiteater.app IN PRODUCTS ==="
+          # Find the real compiled app
           APP_PATH=$(find ios/DerivedData/Build/Products -name "Limiteater.app" -type d | head -n 1)
           echo "Found product app at: $APP_PATH"
           
-          if [ -z "$APP_PATH" ]; then
-            echo "ERROR: Limiteater.app was not found in Products!"
-            find ios/DerivedData -maxdepth 4
-            exit 1
-          fi
+          echo "### Contents of Limiteater.app" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          ls -la "$APP_PATH" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           
-          echo "=== APP BUNDLE CONTENTS ==="
-          ls -la "$APP_PATH"
-          
-          echo "=== PACKAGING INTO IPA ==="
+          # Stage into Payload
           mkdir -p ipa_staging/Payload
           cp -r "$APP_PATH" ipa_staging/Payload/
           
@@ -65,8 +63,11 @@ jobs:
           zip -r -9 ../Limiteater.ipa Payload
           cd ..
           
-          echo "=== FINAL IPA FILE DETAILS ==="
-          ls -lh Limiteater.ipa
+          echo "### IPA Details" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          ls -lh Limiteater.ipa >> $GITHUB_STEP_SUMMARY
+          unzip -l Limiteater.ipa >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Real IPA
         if: success()
