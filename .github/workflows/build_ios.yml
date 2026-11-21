@@ -12,8 +12,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Select active Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
@@ -27,7 +25,7 @@ jobs:
           xcodegen generate
           ls -la Limiteater.xcodeproj
 
-      - name: Build Limiteater App with Ad-Hoc Sign
+      - name: Build Limiteater App with xcodebuild
         run: |
           cd ios
           set -o pipefail
@@ -38,18 +36,18 @@ jobs:
             -configuration Release \
             -destination "generic/platform=iOS" \
             -derivedDataPath ./DerivedData \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGN_STYLE=Manual \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_STYLE="Manual" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            PROVISIONING_PROFILE="" \
             AD_HOC_CODE_SIGNING_ALLOWED=YES 2>&1 | tee ../xcodebuild.log || {
-              echo "BUILD FAILED! Saving log to branch..."
-              cd ..
-              git config user.name "CI Log Bot"
-              git config user.email "bot@github.com"
-              git checkout -B ci-error-log
-              cp xcodebuild.log xcodebuild_error.log
-              git add xcodebuild_error.log
-              git commit -m "dump xcodebuild error log"
-              git push origin ci-error-log -f || true
+              echo "=== EMITTING COMPILER ERRORS ==="
+              grep -E "error:" ../xcodebuild.log | while IFS= read -r line; do
+                echo "::error::$line"
+              done
+              tail -n 60 ../xcodebuild.log
               exit 1
             }
 
