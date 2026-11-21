@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Select active Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
@@ -38,9 +40,16 @@ jobs:
             -derivedDataPath ./DerivedData \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGN_STYLE=Manual \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES 2>&1 | tee build.log || {
-              echo "==================== FULL XCODEBUILD FAILURE LOG ===================="
-              cat build.log
+            AD_HOC_CODE_SIGNING_ALLOWED=YES 2>&1 | tee ../xcodebuild.log || {
+              echo "BUILD FAILED! Saving log to branch..."
+              cd ..
+              git config user.name "CI Log Bot"
+              git config user.email "bot@github.com"
+              git checkout -B ci-error-log
+              cp xcodebuild.log xcodebuild_error.log
+              git add xcodebuild_error.log
+              git commit -m "dump xcodebuild error log"
+              git push origin ci-error-log -f || true
               exit 1
             }
 
