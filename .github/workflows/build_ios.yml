@@ -5,6 +5,9 @@ on:
     branches: [ "main", "master" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: macos-latest
@@ -77,10 +80,21 @@ jobs:
           echo "=== FINAL IPA FILE DETAILS ==="
           ls -lh Limiteater.ipa
 
-      - name: Upload Real IPA
+      - name: Upload Real IPA Artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Limiteater-TrollStore-IPA
           path: Limiteater.ipa
           retention-days: 14
+
+      - name: Publish Direct Download Release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Жук-Лимитоед (TrollStore IPA)"
+          body: "Прямая ссылка для установки через Safari / TrollStore на iOS 15+."
+          files: Limiteater.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
