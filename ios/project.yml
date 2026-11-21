@@ -30,4 +30,7 @@ schemes:
   Limiteater:
     build:
       targets:
-        Limiteater: all
+        Limiteater:
+          - build
+          - run
+          - archive
