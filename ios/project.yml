@@ -22,11 +22,13 @@ targets:
       - path: Limiteater/App
       - path: Limiteater/Models
       - path: Limiteater/Views
+      - path: Limiteater/Assets.xcassets
     info:
       path: Limiteater/Info.plist
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.limiteater.app
       PRODUCT_NAME: Limiteater
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       CODE_SIGNING_ALLOWED: NO
       CODE_SIGNING_REQUIRED: NO
       CODE_SIGN_IDENTITY: ""

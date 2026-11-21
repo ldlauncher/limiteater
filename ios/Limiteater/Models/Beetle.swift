@@ -33,20 +33,22 @@ public struct FoodItem: Identifiable, Codable {
     public var icon: String
     public var cost: Int
     public var hungerGain: Double
+    public var quote: String
     
-    public init(id: String, name: String, icon: String, cost: Int, hungerGain: Double) {
+    public init(id: String = UUID().uuidString, name: String, icon: String, cost: Int, hungerGain: Double, quote: String = "") {
         self.id = id
         self.name = name
         self.icon = icon
         self.cost = cost
         self.hungerGain = hungerGain
+        self.quote = quote.isEmpty ? "Ммм! \(name) сожран! Токены усвоены! 🤤" : quote
     }
     
     public static let catalog: [FoodItem] = [
-        FoodItem(id: "cookie", name: "Промпт", icon: "🍪", cost: 10, hungerGain: 15),
-        FoodItem(id: "burger", name: "JSON Бургер", icon: "🍔", cost: 30, hungerGain: 40),
-        FoodItem(id: "shawarma", name: "Шаурма 429", icon: "🌯", cost: 60, hungerGain: 75),
-        FoodItem(id: "api_key", name: "API Ключ Pro", icon: "💎", cost: 120, hungerGain: 100)
+        FoodItem(id: "cookie", name: "Промпт-печенье", icon: "🍪", cost: 2, hungerGain: 15, quote: "Хрум! Базовый промпт усвоен!"),
+        FoodItem(id: "burger", name: "JSON-Бургер", icon: "🍔", cost: 10, hungerGain: 40, quote: "Слоёный JSON прямо в оперативку!"),
+        FoodItem(id: "shawarma", name: "Шаурма 429", icon: "🌯", cost: 8, hungerGain: 35, quote: "Острая шаурма превысила лимит запросов!"),
+        FoodItem(id: "api_key", name: "API Ключ Pro", icon: "💎", cost: 25, hungerGain: 80, quote: "PRO-подписка активирована! Вкусно!")
     ]
 }
 
