@@ -30,9 +30,10 @@ jobs:
           cd ios
           xcodebuild build \
             -project Limiteater.xcodeproj \
-            -target Limiteater \
+            -scheme Limiteater \
             -sdk iphoneos \
             -configuration Release \
+            -destination "generic/platform=iOS" \
             -derivedDataPath ./DerivedData \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGN_STYLE=Manual \
@@ -40,7 +41,10 @@ jobs:
 
       - name: Inspect and Package Real .IPA
         run: |
-          echo "=== SEARCHING IN PRODUCTS DIRECTORY ONLY ==="
+          echo "=== ALL FILES IN PRODUCTS FOLDER ==="
+          find ios/DerivedData/Build/Products
+          
+          echo "=== SEARCHING FOR COMPILED Limiteater.app IN PRODUCTS ==="
           APP_PATH=$(find ios/DerivedData/Build/Products -name "Limiteater.app" -type d | head -n 1)
           echo "Found product app at: $APP_PATH"
           
@@ -52,9 +56,6 @@ jobs:
           
           echo "=== APP BUNDLE CONTENTS ==="
           ls -la "$APP_PATH"
-          
-          echo "=== EXECUTABLE BINARY CHECK ==="
-          ls -lh "$APP_PATH/Limiteater" || ls -lh "$APP_PATH"/*
           
           echo "=== PACKAGING INTO IPA ==="
           mkdir -p ipa_staging/Payload
