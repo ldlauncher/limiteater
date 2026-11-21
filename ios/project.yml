@@ -27,8 +27,6 @@ targets:
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.limiteater.app
       PRODUCT_NAME: Limiteater
-      INFOPLIST_FILE: Limiteater/Info.plist
-      GENERATE_INFOPLIST_FILE: NO
       CODE_SIGNING_ALLOWED: NO
       CODE_SIGNING_REQUIRED: NO
       CODE_SIGN_IDENTITY: ""

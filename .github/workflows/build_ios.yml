@@ -29,20 +29,18 @@ jobs:
       - name: Build Limiteater App with xcodebuild
         run: |
           cd ios
-          set -o pipefail
+          mkdir -p build
           xcodebuild clean build \
             -project Limiteater.xcodeproj \
-            -target Limiteater \
-            -configuration Release \
+            -scheme Limiteater \
             -sdk iphoneos \
+            -configuration Release \
             -destination "generic/platform=iOS" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_STYLE=Manual \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES \
-            BUILD_DIR="../build_output" \
-            SYMROOT="../build_output" 2>&1 | tee ../xcodebuild.log || (echo "=== COMPILATION ERROR DETAILS ===" && tail -n 100 ../xcodebuild.log && exit 1)
+            CONFIGURATION_BUILD_DIR="$(pwd)/build" 2>&1 | tee ../xcodebuild.log
 
       - name: Package real .IPA (TrollStore / Sideloadly compatible)
         run: |
@@ -50,11 +48,11 @@ jobs:
           mkdir -p ipa_package/Payload
           
           # Find the compiled .app bundle
-          APP_PATH=$(find build_output -name "Limiteater.app" -type d | head -n 1)
+          APP_PATH=$(find ios/build -name "Limiteater.app" -type d | head -n 1)
           echo "Found compiled app at: $APP_PATH"
           
           if [ -z "$APP_PATH" ]; then
-            echo "Error: Limiteater.app was not built!"
+            echo "Error: Limiteater.app was not found in ios/build!"
             exit 1
           fi
           
@@ -74,8 +72,18 @@ jobs:
           ls -lh Limiteater.ipa
 
       - name: Upload Real IPA
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Limiteater-TrollStore-IPA
           path: Limiteater.ipa
           retention-days: 14
+
+      - name: Upload Build Log (Always Available)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: xcodebuild.log
+          if-no-files-found: ignore
+          retention-days: 7

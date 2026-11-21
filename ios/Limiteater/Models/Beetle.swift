@@ -34,6 +34,14 @@ public struct FoodItem: Identifiable, Codable {
     public var cost: Int
     public var hungerGain: Double
     
+    public init(id: String, name: String, icon: String, cost: Int, hungerGain: Double) {
+        self.id = id
+        self.name = name
+        self.icon = icon
+        self.cost = cost
+        self.hungerGain = hungerGain
+    }
+    
     public static let catalog: [FoodItem] = [
         FoodItem(id: "cookie", name: "Промпт", icon: "🍪", cost: 10, hungerGain: 15),
         FoodItem(id: "burger", name: "JSON Бургер", icon: "🍔", cost: 30, hungerGain: 40),
@@ -53,6 +61,19 @@ public struct Beetle: Identifiable, Codable {
     public var tokensEaten: Int = 1500
     public var isSleeping: Bool = false
     public var birthDate: Date = Date()
+    
+    public init(id: UUID = UUID(), name: String, level: Int = 1, hunger: Double = 80.0, toilet: Double = 85.0, clean: Double = 70.0, energy: Double = 90.0, tokensEaten: Int = 1500, isSleeping: Bool = false, birthDate: Date = Date()) {
+        self.id = id
+        self.name = name
+        self.level = level
+        self.hunger = hunger
+        self.toilet = toilet
+        self.clean = clean
+        self.energy = energy
+        self.tokensEaten = tokensEaten
+        self.isSleeping = isSleeping
+        self.birthDate = birthDate
+    }
     
     public var moodDescription: String {
         if isSleeping { return "Спит (Лимиты восстанавливаются...)" }
