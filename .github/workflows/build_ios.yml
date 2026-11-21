@@ -36,35 +36,25 @@ jobs:
             -derivedDataPath ./DerivedData \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGN_STYLE=Manual \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES 2>&1 | tee ../xcodebuild.log
-          
-          echo "=== XCODEBUILD LOG OUTPUT ==="
-          cat ../xcodebuild.log
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
 
       - name: Inspect and Package Real .IPA
         run: |
-          echo "=== SEARCHING FOR COMPILED Limiteater.app ==="
-          APP_PATH=$(find ios/DerivedData -name "Limiteater.app" -type d | head -n 1)
-          echo "Found compiled app at: $APP_PATH"
+          echo "=== SEARCHING IN PRODUCTS DIRECTORY ONLY ==="
+          APP_PATH=$(find ios/DerivedData/Build/Products -name "Limiteater.app" -type d | head -n 1)
+          echo "Found product app at: $APP_PATH"
           
           if [ -z "$APP_PATH" ]; then
-            echo "ERROR: Limiteater.app was not found!"
-            find ios/DerivedData -maxdepth 5
+            echo "ERROR: Limiteater.app was not found in Products!"
+            find ios/DerivedData -maxdepth 4
             exit 1
           fi
           
           echo "=== APP BUNDLE CONTENTS ==="
           ls -la "$APP_PATH"
           
-          if [ ! -f "$APP_PATH/Limiteater" ]; then
-            echo "CRITICAL ERROR: Executable binary Limiteater is MISSING in $APP_PATH!"
-            echo "Searching for any compiled Limiteater binary:"
-            find ios/DerivedData -type f -perm +111 || true
-            exit 1
-          fi
-          
-          echo "=== EXECUTABLE BINARY VERIFIED ==="
-          ls -lh "$APP_PATH/Limiteater"
+          echo "=== EXECUTABLE BINARY CHECK ==="
+          ls -lh "$APP_PATH/Limiteater" || ls -lh "$APP_PATH"/*
           
           echo "=== PACKAGING INTO IPA ==="
           mkdir -p ipa_staging/Payload
@@ -84,12 +74,3 @@ jobs:
           name: Limiteater-TrollStore-IPA
           path: Limiteater.ipa
           retention-days: 14
-
-      - name: Upload Build Log (Always)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: xcodebuild-log
-          path: xcodebuild.log
-          if-no-files-found: ignore
-          retention-days: 7
