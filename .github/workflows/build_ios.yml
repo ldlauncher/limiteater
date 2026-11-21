@@ -37,35 +37,31 @@ jobs:
             -derivedDataPath ./DerivedData \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGN_STYLE=Manual \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES 2>&1 | tee ../xcodebuild.log || (echo "=== BUILD LOG HEAD & TAIL ===" && head -n 50 ../xcodebuild.log && echo "..." && tail -n 100 ../xcodebuild.log && exit 1)
+            AD_HOC_CODE_SIGNING_ALLOWED=YES 2>&1 | tee ../xcodebuild.log
+          
+          echo "=== XCODEBUILD LOG OUTPUT ==="
+          cat ../xcodebuild.log
 
-      - name: Package Real .IPA
+      - name: Inspect and Package Real .IPA
         run: |
+          echo "=== ALL FILES IN DERIVED DATA ==="
+          find ios/DerivedData/Build/Products -type f
+          
           echo "=== SEARCHING FOR COMPILED Limiteater.app ==="
           APP_PATH=$(find ios/DerivedData -name "Limiteater.app" -type d | head -n 1)
           echo "Found compiled app at: $APP_PATH"
           
           if [ -z "$APP_PATH" ]; then
             echo "ERROR: Limiteater.app was not found!"
-            find ios/DerivedData -maxdepth 5
             exit 1
           fi
           
           echo "=== APP BUNDLE CONTENTS ==="
           ls -la "$APP_PATH"
           
-          echo "=== EXECUTABLE BINARY CHECK ==="
-          ls -lh "$APP_PATH/Limiteater" || true
-          
           echo "=== PACKAGING INTO IPA ==="
           mkdir -p ipa_staging/Payload
           cp -r "$APP_PATH" ipa_staging/Payload/
-          
-          # Ensure Info.plist exists
-          if [ ! -f "ipa_staging/Payload/Limiteater.app/Info.plist" ]; then
-            echo "Copying fallback Info.plist..."
-            cp ios/Limiteater/Info.plist ipa_staging/Payload/Limiteater.app/
-          fi
           
           cd ipa_staging
           zip -r -9 ../Limiteater.ipa Payload

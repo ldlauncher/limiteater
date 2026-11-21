@@ -8,10 +8,6 @@ settings:
   SWIFT_VERSION: "5.0"
   TARGETED_DEVICE_FAMILY: "1"
   ENABLE_BITCODE: NO
-  CODE_SIGNING_ALLOWED: NO
-  CODE_SIGNING_REQUIRED: NO
-  CODE_SIGN_IDENTITY: ""
-  CODE_SIGN_STYLE: Manual
 
 targets:
   Limiteater:
@@ -19,17 +15,15 @@ targets:
     platform: iOS
     deploymentTarget: "15.0"
     sources:
-      - path: Limiteater
-        excludes:
-          - "Info.plist"
+      - path: Limiteater/App
+      - path: Limiteater/Models
+      - path: Limiteater/Views
     info:
       path: Limiteater/Info.plist
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.limiteater.app
       PRODUCT_NAME: Limiteater
-      CODE_SIGNING_ALLOWED: NO
-      CODE_SIGNING_REQUIRED: NO
-      CODE_SIGN_IDENTITY: ""
+      CODE_SIGN_IDENTITY: "-"
       CODE_SIGN_STYLE: Manual
 
 schemes:
