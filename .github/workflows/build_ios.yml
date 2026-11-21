@@ -23,52 +23,54 @@ jobs:
         run: |
           cd ios
           xcodegen generate
-          ls -la
           ls -la Limiteater.xcodeproj
 
       - name: Build Limiteater App with xcodebuild
         run: |
           cd ios
-          mkdir -p build
-          xcodebuild clean build \
+          xcodebuild build \
             -project Limiteater.xcodeproj \
             -scheme Limiteater \
             -sdk iphoneos \
             -configuration Release \
             -destination "generic/platform=iOS" \
+            -derivedDataPath ./DerivedData \
+            ARCHS="arm64" \
+            ONLY_ACTIVE_ARCH=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGN_STYLE=Manual \
-            CONFIGURATION_BUILD_DIR="$(pwd)/build" 2>&1 | tee ../xcodebuild.log
+            CODE_SIGN_STYLE=Manual
 
-      - name: Package real .IPA (TrollStore / Sideloadly compatible)
+      - name: Inspect and Package Real .IPA
         run: |
-          echo "Packaging compiled app into .ipa..."
-          mkdir -p ipa_package/Payload
+          echo "=== CHECKING COMPILED APP DIRECTORY ==="
+          APP_DIR=$(find ios/DerivedData/Build/Products/Release-iphoneos -name "Limiteater.app" -type d | head -n 1)
+          echo "App directory found at: $APP_DIR"
           
-          # Find the compiled .app bundle
-          APP_PATH=$(find ios/build -name "Limiteater.app" -type d | head -n 1)
-          echo "Found compiled app at: $APP_PATH"
-          
-          if [ -z "$APP_PATH" ]; then
-            echo "Error: Limiteater.app was not found in ios/build!"
+          if [ -z "$APP_DIR" ]; then
+            echo "ERROR: Limiteater.app was not produced by xcodebuild!"
             exit 1
           fi
           
-          cp -r "$APP_PATH" ipa_package/Payload/
+          echo "=== CONTENTS OF Limiteater.app ==="
+          ls -la "$APP_DIR"
           
-          # Verify Info.plist exists inside Payload/Limiteater.app
-          if [ ! -f "ipa_package/Payload/Limiteater.app/Info.plist" ]; then
-            echo "Copying fallback Info.plist..."
-            cp ios/Limiteater/Info.plist ipa_package/Payload/Limiteater.app/
+          echo "=== PACKAGING INTO IPA ==="
+          mkdir -p ipa_staging/Payload
+          cp -r "$APP_DIR" ipa_staging/Payload/
+          
+          # Ensure Info.plist is present
+          if [ ! -f "ipa_staging/Payload/Limiteater.app/Info.plist" ]; then
+            echo "Warning: Info.plist missing, copying from source..."
+            cp ios/Limiteater/Info.plist ipa_staging/Payload/Limiteater.app/
           fi
           
-          cd ipa_package
+          cd ipa_staging
           zip -r -9 ../Limiteater.ipa Payload
           cd ..
           
-          echo "=== RESULTING IPA DETAILS ==="
+          echo "=== FINAL IPA FILE DETAILS ==="
           ls -lh Limiteater.ipa
 
       - name: Upload Real IPA
@@ -78,12 +80,3 @@ jobs:
           name: Limiteater-TrollStore-IPA
           path: Limiteater.ipa
           retention-days: 14
-
-      - name: Upload Build Log (Always Available)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: xcodebuild-log
-          path: xcodebuild.log
-          if-no-files-found: ignore
-          retention-days: 7
